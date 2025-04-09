@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>レジ</title>
+        <style>
+            html,head,body{
+                margin:0;
+                padding:0;
+                color:#fff;
+                font-size:1rem;
+            }
+            .background{
+                position:absolute;
+                top:0;
+                left:0;
+                z-index:-10;
+                width:100vw;
+                height:100vh;
+                background-color:#000;
+            }
+            .nedan_cont,.button-1-kaikei,.play_init{
+                display:flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .nedan_cont{
+                width:100vw;
+                height:100vh;
+                gap:1rem;
+            }
+            .nedan_view,.yen{
+                font-size:8rem;
+            }
+            .nedan_view{
+                color:aqua;
+            }
+            .yen{
+                color:#fff;
+            }
+            .button-1{
+                background-color:rgb(147, 59, 59);
+                width:calc(4rem * 5);
+                height:calc(4rem * 2);
+                position:absolute;
+                bottom:1rem;
+                right:1rem;
+                z-index:2;
+                border-radius: 40px;
+                cursor:pointer;
+            }
+            .button-1-kaikei{
+                font-size:4rem;
+                width:100%;
+                height:100%;
+            }
+            .all{
+                color:#fff;
+                font-size:2rem;
+                display:none;
+            }
+            .goukei{
+                position:absolute;
+                top:1rem;
+                left:1rem;
+
+            }
+            .play_init{
+                position:absolute;
+                width:100vw;
+                height:100vh;
+                z-index:10;
+                backdrop-filter:blur(2px) brightness(50%);
+            }
+            .play_init_char{
+                font-size:8rem;
+                border:2px solid #fff;
+                border-radius:40px;
+                cursor:pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="play_init"><div class="play_init_char">あそぶ</div></div>
+        <div class="background"></div>
+        <div class="nedan_cont">
+            <div class="all">ぜんぶで</div>
+            <div class="nedan_view">---</div><span class="yen">円</span>
+        </div>
+        <div class="button-1"><div class="button-1-kaikei">かいけい</div></div>
+        <div class="goukei">ごうけい：<span class="goukei_yen">---</span>円</div>
+    </body>
+    <script async defer>
+        let d = document;
+        let locked = false;
+        let goukei = 0;
+        let nedan = [];
+        let mode = "add"; // add or read
+        function dc(c){
+            return d.getElementsByClassName(c)[0];
+        }
+        // 初期化
+        dc("play_init_char").addEventListener("click", function(){
+            dc("play_init").style.display = "none";
+            init();
+        });
+
+        class keyboard{
+            constructor(){
+                if (navigator.keyboard){
+                    this.key = navigator.keyboard;
+                } else {
+                    console.error("Keyboard ERROR!");
+                }
+            }
+            lock_key(){
+                if (!locked){
+                    if (this.key.lock){
+                        if (this.key.lock()){
+                            console.info("Key locked!");
+                            locked = !locked;
+                        } else {
+                            console.warn("Key lock event was sent, but it was not locked.")
+                        }
+                    } else {
+                        console.warn("Keyboard lock ERROR!");
+                    }
+                } else {
+                    console.info("already locked.");
+                }
+            }
+        }
+
+        function init(){
+            // ここに初期化処理を書く
+            (new keyboard).lock_key();
+            document.addEventListener("keydown", key_enterd);
+            while(1){
+                let random = Math.floor(Math.random() * 30) * 10;
+                if (random <= 100) {
+                    continue;
+                }
+                nedan.push(random);
+                if (nedan.length >= 300){
+                    break;
+                }
+            }
+            d.body.requestFullscreen();
+        }
+        dc("button-1").addEventListener("click", function(){
+            mode = "read";
+            dc("all").style.display = "block";
+            dc("nedan_view").innerHTML = goukei;
+            dc("button-1").style.display = "none";
+        });
+        function key_enterd(e){
+            if (e.key == "Enter" && e.repeat == false){
+            // ここにキー実行時の処理を書く
+                let yen = 0;
+                switch(mode){
+                    case "add":
+                        yen = nedan[Math.floor(Math.random() * nedan.length)];
+                        goukei += yen;
+                        break;
+                    case "read":
+                        mode = "add";
+                        dc("all").style.display = "none";
+                        yen = 0;
+                        goukei = 0;
+                        dc("button-1").style.display = "block";
+                        yen = nedan[Math.floor(Math.random() * nedan.length)];
+                        goukei += yen;
+                        break;
+                    default:
+                        break;
+                }
+                dc("nedan_view").innerHTML = yen;
+                dc("goukei_yen").innerHTML = goukei;
+            }
+        }
+    </script>
+</html>
